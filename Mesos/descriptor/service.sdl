@@ -1,0 +1,113 @@
+{
+    "name": "MESOS",
+    "label": "Mesos",
+    "description": "Apache Mesos is a distributed systems kernel. Mesos abstracts CPU, memory, storage, and other compute resources away from machines (physical or virtual), enabling fault-tolerant and elastic distributed systems to easily be built and run effectively. <span class=\"error\">Not supported by Cloudera (Experimental).</span>",
+    "version": "1.0",
+    "icon": "images/mesos.png",
+    "runAs": {
+        "user": "root",
+        "group": "root"
+    },
+    
+    "serviceDependencies": [
+        {
+            "name": "ZOOKEEPER",
+            "required": "true"
+        }
+    ],
+    "parameters": [
+        {
+            "name": "zookeeper.chroot",
+            "label": "ZooKeeper Root",
+            "description": "ZNode in ZooKeeper that should be used as a root for this Mesos cluster.",
+            "type": "string",
+            "default": "",
+            "configurableInWizard": true
+        }
+    ],
+    "roles": [
+        {
+            "name": "MESOS_MASTER",
+            "label": "Mesos Master",
+            "pluralLabel": "Mesos Masters",
+            "parameters": [
+                {
+                    "name": "port",
+                    "label": "Master port",
+                    "description": "Mesos master port.",
+                    "required": "true",
+                    "type": "port",
+                    "default": 5050
+                },
+                {
+                    "name": "work.dir",
+                    "label": "Master work dir",
+                    "description": "Path of the master work directory. This is where the persistent information of the cluster will be stored.",
+                    "required": "true",
+                    "type": "string",
+                    "default": "/var/lib/mesos/master",
+                    "configurableInWizard": true
+                },
+                {
+                    "name": "log.dir",
+                    "label": "Master log dir",
+                    "description": "Location to put log files. By default, nothing is written to disk. Does not affect logging to stderr. If specified, the log file will appear in the Mesos WebUI.",
+                    "required": "true",
+                    "type": "string",
+                    "default": "/var/log/mesos/master",
+                    "configurableInWizard": true
+                }
+            ],
+            "startRunner": {
+                "program": "scripts/control.sh",
+                "args": [
+                    "start-mesos-master"
+                ],
+                "environmentVariables": {
+                    "HOST": "${host}",
+                    "CHROOT": "${zookeeper.chroot}",
+                    "PORT": "${port}",
+                    "WORK_DIR": "${work.dir}",
+                    "LOG_DIR": "${log.dir}"
+                }
+            }
+        },
+        {
+            "name": "MESOS_AGENT",
+            "label": "Mesos Agent",
+            "pluralLabel": "Mesos Agents",
+            "parameters": [
+                {
+                    "name": "work.dir",
+                    "label": "Agent work dir",
+                    "description": "Path of the agent work directory. This is where the persistent information of the cluster will be stored.",
+                    "required": "true",
+                    "type": "string",
+                    "default": "/var/lib/mesos/agent",
+                    "configurableInWizard": true
+                },
+                {
+                    "name": "log.dir",
+                    "label": "Agent log dir",
+                    "description": "Location to put log files. By default, nothing is written to disk. Does not affect logging to stderr. If specified, the log file will appear in the Mesos WebUI.",
+                    "required": "true",
+                    "type": "string",
+                    "default": "/var/log/mesos/agent",
+                    "configurableInWizard": true
+                }
+            ],
+            "startRunner": {
+                "program": "scripts/control.sh",
+                "args": [
+                    "start-mesos-agent"
+                ],
+                "environmentVariables": {
+                    "HOST": "${host}",
+                    "CHROOT": "${zookeeper.chroot}",
+                    "WORK_DIR": "${work.dir}",
+                    "LOG_DIR": "${log.dir}"
+                }
+            }
+        }
+    ]
+}
