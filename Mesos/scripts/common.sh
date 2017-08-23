@@ -23,7 +23,9 @@ echo "CONF_DIR: $CONF_DIR"
 echo "MESOS_HOME: $MESOS_HOME"
 echo "Zookeeper Quorum: $ZK_QUORUM"
 echo "Zookeeper Chroot: $CHROOT"
-echo "PORT: $PORT"
+echo "MASTER_PORT: $MASTER_PORT"
+echo "AGENT_PORT: $AGENT_PORT"
+echo "Number of quorums: $MESOS_QUORUM"
 echo "Work Dir: $WORK_DIR"
 echo "Log Dir: $LOG_DIR"
 
@@ -41,7 +43,7 @@ echo "Final Zookeeper Quorum is $QUORUM"
 
 function start_mesos_master {
     log "Starting Mesos Master"
-    exec $MESOS_HOME/sbin/mesos-master --zk=zk://$QUORUM --work_dir=$WORK_DIR --log_dir=$LOG_DIR --port=$PORT --ip=$HOST_IP --hostname=$HOST_IP --quorum=1
+    exec $MESOS_HOME/sbin/mesos-master --zk=zk://$QUORUM --work_dir=$WORK_DIR --log_dir=$LOG_DIR --port=$MASTER_PORT --ip=$HOST_IP --hostname=$HOST_IP --quorum=$MESOS_QUORUM
 }
 
 function stop_mesos_master {
@@ -51,7 +53,7 @@ function stop_mesos_master {
 
 function start_mesos_agent {
     log "Starting Mesos Agent"
-    exec $MESOS_HOME/sbin/mesos-agent --master=zk://$QUORUM --work_dir=$WORK_DIR --ip=$HOST_IP \
+    exec $MESOS_HOME/sbin/mesos-agent --master=zk://$QUORUM --work_dir=$WORK_DIR --port=$AGENT_PORT --ip=$HOST_IP --hostname=$HOST_IP \
     --launcher_dir=$MESOS_HOME/libexec/mesos --log_dir=$MESOS_HOME/log/slave \
     --logging_level=ERROR --containerizers=mesos \
     --executor_registration_timeout=5mins
