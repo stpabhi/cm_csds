@@ -9,13 +9,20 @@
         "user": "root",
         "group": "root"
     },
-    
+//    "parcel": {
+//        "repoUrl": "https://github.com/stpabhi/cm_csds/Mesos/latest/",
+//        "requiredTags": [
+//            "cdh",
+//            "mesos"
+//        ]
+//    },
     "serviceDependencies": [
         {
             "name": "ZOOKEEPER",
             "required": "true"
         }
     ],
+//  "kerberos" : "${kerberos.auth.enable}",    
     "parameters": [
         {
             "name": "zookeeper.chroot",
@@ -25,6 +32,14 @@
             "default": "/mesos",
             "configurableInWizard": true
         }
+//      ,{
+//          "name" : "kerberos.auth.enable",
+//          "label" : "Enable Kerberos Authentication",
+//          "description" : "Enable Kerberos authentication for this MESOS service.",
+//          "type" : "boolean",
+//          "default" : "false",
+//          "configurableInWizard": true
+//      },
     ],
     "roles": [
         {
@@ -48,7 +63,9 @@
                     "required": "true",
                     "type": "long",
                     "default": 1,
-                    "configurableInWizard" : true
+                    "min": 1,
+                    "modifiable" : false,
+                    "configurableInWizard" : false
                 },
                 {
                     "name": "work.dir",
@@ -57,6 +74,7 @@
                     "required": "true",
                     "type": "string",
                     "default": "/var/lib/mesos/master",
+                    "pathType": "localDataDir",
                     "configurableInWizard": true
                 },
                 {
@@ -66,6 +84,7 @@
                     "required": "true",
                     "type": "string",
                     "default": "/var/log/mesos/master",
+                    "pathType": "localDataDir",
                     "configurableInWizard": true
                 }
             ],
@@ -87,6 +106,14 @@
                     "WORK_DIR": "${work.dir}",
                     "LOG_DIR": "${log.dir}"
                 }
+            },
+            "topology" : { "minInstances" : 1 },
+            "logging": {
+                "dir": "/var/log/mesos/master",
+                "filename": "mesos-master-${host}.log",
+                "modifiable": true,
+                "configName": "mesos.log4j.dir",
+                "loggingType": "log4j"
             }
         },
         {
@@ -110,6 +137,7 @@
                     "required": "true",
                     "type": "string",
                     "default": "/var/lib/mesos/agent",
+                    "pathType": "localDataDir",
                     "configurableInWizard": true
                 },
                 {
@@ -119,6 +147,7 @@
                     "required": "true",
                     "type": "string",
                     "default": "/var/log/mesos/agent",
+                    "pathType": "localDataDir",
                     "configurableInWizard": true
                 }
             ],
@@ -134,6 +163,13 @@
                     "WORK_DIR": "${work.dir}",
                     "LOG_DIR": "${log.dir}"
                 }
+            },
+            "logging": {
+                "dir": "/var/log/mesos/agent",
+                "filename": "mesos-agent-${host}.log",
+                "modifiable": true,
+                "configName": "mesos.log4j.dir",
+                "loggingType": "log4j"
             }
         }
     ],
@@ -145,6 +181,7 @@
                 "stop-mesos-master"
             ]
         },
+        "timeout" : "30000",
         "masterRole": "MESOS_MASTER"
     },
     "stopRunner": {
@@ -155,6 +192,21 @@
                 "stop-mesos-agent"
             ]
         },
+        "timeout" : "30000",
         "masterRole": "MESOS_AGENT"
-    }
+    },
+    "rollingRestart": {
+        "nonWorkerSteps": [
+        {
+            "roleName": "MESOS_MASTER",
+            "bringUpCommands": [ "start-mesos-master" ],
+            "bringDownCommands": [ "stop-mesos-master" ]
+        },
+        {
+            "roleName": "MESOS_AGENT",
+            "bringUpCommands": [ "start-mesos-agent" ],
+            "bringDownCommands": [ "stop-mesos-agent" ]
+        }
+    ]
+  }
 }
